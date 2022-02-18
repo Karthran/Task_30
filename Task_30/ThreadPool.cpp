@@ -17,32 +17,33 @@ void ThreadPool::threadFunc(int qindex)
     while (true)
     {
         // обработка очередной задачи
-        task_type task_to_do;
-        bool res;
+        TaskWithPromise twp;
+
+        bool res{false};
         int i = 0;
         for (; i < m_thread_count; i++)
         {
             // попытка быстро забрать задачу из любой очереди, начиная со своей
-            if (res = m_thread_queues[(qindex + i) % m_thread_count].fast_pop(task_to_do)) break;
+            if (res = m_thread_queues[(qindex + i) % m_thread_count].fast_pop(twp)) break;
         }
-
         if (!res)
         {
             // вызываем блокирующее получение очереди
-            m_thread_queues[qindex].pop(task_to_do);
+            m_thread_queues[qindex].pop(twp);
         }
-        else if (!task_to_do)
+        else if (!twp.task)
         {
             // чтобы не допустить зависания потока
             // кладем обратно задачу-пустышку
-            m_thread_queues[(qindex + i) % m_thread_count].push(task_to_do);
+            m_thread_queues[(qindex + i) % m_thread_count].push(twp);
         }
-        if (!task_to_do)
+        if (!twp.task)
         {
             return;
         }
         // выполняем задачу
-        task_to_do();
+        twp.task();
+        //twp.prom.set_value();
     }
 }
 
@@ -87,20 +88,24 @@ void ThreadPool::stop()
     {
         // кладем задачу-пустышку в каждую очередь
         // для завершения потока
-        task_type empty_task;
-        m_thread_queues[i].push(empty_task);
+        TaskWithPromise twp;
+        m_thread_queues[i].push(twp);
     }
     for (auto& t : m_threads)
     {
         t.join();
     }
 }
-void ThreadPool::push_task(FuncType f, std::vector<int>& vec, int id, int arg)
+auto ThreadPool::push_task(FuncType f, std::vector<int>& vec, int id, int arg) -> res_type
 {
     // вычисляем индекс очереди, куда положим задачу
     int queue_to_push = m_index++ % m_thread_count;
     // формируем функтор
     task_type task = [=,&vec] { f(vec,id, arg); };
+    TaskWithPromise twp;
+    twp.task = task;
     // кладем в очередь
-    m_thread_queues[queue_to_push].push(task);
+    res_type res = twp.prom.get_future();
+    m_thread_queues[queue_to_push].push(twp);
+    return res;
 }

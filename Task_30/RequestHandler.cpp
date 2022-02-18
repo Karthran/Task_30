@@ -10,7 +10,7 @@ RequestHandler::~RequestHandler()
     m_tpool.stop();
 }
 
-auto RequestHandler::pushRequest(FuncType f, std::vector<int>& vec, int id, int arg) -> void
+auto RequestHandler::pushRequest(FuncType f, std::vector<int>& vec, int id, int arg) -> res_type
 {
-    m_tpool.push_task(f, vec, id, arg);
+    return m_tpool.push_task(f, vec, id, arg);
 }

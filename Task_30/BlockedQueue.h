@@ -11,7 +11,7 @@ public:
     {
         std::lock_guard<std::mutex> l(m_locker);
         // обычный потокобезопасный push
-        m_task_queue.push(item);
+        m_task_queue.push(std::move(item));
         // делаем оповещение, чтобы поток, вызвавший
         // pop проснулся и забрал элемент из очереди
         m_notifier.notify_one();
@@ -23,7 +23,7 @@ public:
         if (m_task_queue.empty())
             // ждем, пока вызовут push
             m_notifier.wait(l, [this] { return !m_task_queue.empty(); });
-        item = m_task_queue.front();
+        item = std::move(m_task_queue.front());
         m_task_queue.pop();
     }
     // неблокирующий метод получения элемента из очереди
@@ -35,7 +35,7 @@ public:
             // просто выходим
             return false;
         // забираем элемент
-        item = m_task_queue.front();
+        item = std::move(m_task_queue.front());
         m_task_queue.pop();
         return true;
     }
