@@ -7,7 +7,7 @@
 #include "BlockedQueue.h"
 
 using task_type = std::function<void()>;
-using FuncType = void (*)(int, int);
+using FuncType = void (*)(std::vector<int>&, int, int);
 using res_type = std::future<void>;
 
 
@@ -20,7 +20,7 @@ public:
     // остановка:
     void stop();
     // проброс задач
-    void push_task(FuncType f, int id, int arg);
+    void push_task(FuncType f, std::vector<int>& vec, int id, int arg);
     // функция входа для потока
     void threadFunc(int qindex);
 

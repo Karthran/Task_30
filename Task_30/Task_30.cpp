@@ -14,7 +14,7 @@ auto taskFunc(std::vector<int>& vec, int id, int delay) -> void;
 std::mutex m_cout_locker;
 static bool make_thread = true;
 
-void taskFunc(int id, int delay)
+void taskFunc(std::vector<int>& vec, int id, int delay)
 {
     std::this_thread::sleep_for(std::chrono::seconds(delay));
     std::unique_lock<std::mutex> lock(m_cout_locker);
@@ -116,7 +116,7 @@ auto quickSort(T* arr, int start, int stop) -> void
     RequestHandler rh;
     std::vector<int> vec;
     for (int i = 0; i < 20; i++)
-        rh.pushRequest(taskFunc, i, 1 + rand() % 4);
+        rh.pushRequest(taskFunc, vec, i, 1 + rand() % 4);
     //for (auto& r : results)
     //{
     //    r.wait();

@@ -95,12 +95,12 @@ void ThreadPool::stop()
         t.join();
     }
 }
-void ThreadPool::push_task(FuncType f, int id, int arg)
+void ThreadPool::push_task(FuncType f, std::vector<int>& vec, int id, int arg)
 {
     // вычисляем индекс очереди, куда положим задачу
     int queue_to_push = m_index++ % m_thread_count;
     // формируем функтор
-    task_type task = [=] { f(id, arg); };
+    task_type task = [=,&vec] { f(vec,id, arg); };
     // кладем в очередь
     m_thread_queues[queue_to_push].push(task);
 }
