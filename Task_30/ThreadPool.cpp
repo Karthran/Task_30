@@ -16,78 +16,75 @@ void ThreadPool::threadFunc(int qindex)
 {
     while (true)
     {
-        // обработка очередной задачи
+        // РѕР±СЂР°Р±РѕС‚РєР° РѕС‡РµСЂРµРґРЅРѕР№ Р·Р°РґР°С‡Рё
         TaskWithPromise twp;
 
         bool res{false};
         int i = 0;
         for (; i < m_thread_count; i++)
         {
-            // попытка быстро забрать задачу из любой очереди, начиная со своей
+            // РїРѕРїС‹С‚РєР° Р±С‹СЃС‚СЂРѕ Р·Р°Р±СЂР°С‚СЊ Р·Р°РґР°С‡Сѓ РёР· Р»СЋР±РѕР№ РѕС‡РµСЂРµРґРё, РЅР°С‡РёРЅР°СЏ СЃРѕ СЃРІРѕРµР№
             if (res = m_thread_queues[(qindex + i) % m_thread_count].fast_pop(twp)) break;
         }
         if (!res)
         {
-            // вызываем блокирующее получение очереди
+            // РІС‹Р·С‹РІР°РµРј Р±Р»РѕРєРёСЂСѓСЋС‰РµРµ РїРѕР»СѓС‡РµРЅРёРµ РѕС‡РµСЂРµРґРё
             m_thread_queues[qindex].pop(twp);
         }
         else if (!twp.task)
         {
-            // чтобы не допустить зависания потока
-            // кладем обратно задачу-пустышку
+            // С‡С‚РѕР±С‹ РЅРµ РґРѕРїСѓСЃС‚РёС‚СЊ Р·Р°РІРёСЃР°РЅРёСЏ РїРѕС‚РѕРєР°
+            // РєР»Р°РґРµРј РѕР±СЂР°С‚РЅРѕ Р·Р°РґР°С‡Сѓ-РїСѓСЃС‚С‹С€РєСѓ
             m_thread_queues[(qindex + i) % m_thread_count].push(twp);
         }
         if (!twp.task)
         {
             return;
         }
-        // выполняем задачу
+        // РІС‹РїРѕР»РЅСЏРµРј Р·Р°РґР°С‡Сѓ
         twp.task();
-        //twp.prom.set_value();
+        twp.prom.set_value();
     }
 }
 
-//auto ThreadPool::runTask() -> void
-//{
-//    task_type task_to_do;
-//    bool res{false};
-//    int i = 0;
-//    TaskWithPromise twp;
-//
-//    for (; i < m_thread_count; i++)
-//    {
-//        // попытка быстро забрать задачу из любой очереди, начиная со своей
-//        res = m_thread_queues[i % m_thread_count].fast_pop(twp);
-//        if (res) break;
-//    }
-//
-//    if (!res)
-//    {
-//        return;
-//    }
-//    else if (!twp.task)
-//    {
-//        // чтобы не допустить зависания потока
-//        // кладем обратно задачу-пустышку
-//        task_type empty_task;
-//        twp.task = empty_task;
-//
-//        m_thread_queues[i % m_thread_count].push(twp);
-//    }
-//    if (!twp.task)
-//    {
-//        return;
-//    }
-//    // выполняем задачу
-//    twp.task();
-//}
+auto ThreadPool::runTask() -> void
+{
+    bool res{false};
+    int i = 0;
+    TaskWithPromise twp;
+
+    for (; i < m_thread_count; i++)
+    {
+        // РїРѕРїС‹С‚РєР° Р±С‹СЃС‚СЂРѕ Р·Р°Р±СЂР°С‚СЊ Р·Р°РґР°С‡Сѓ РёР· Р»СЋР±РѕР№ РѕС‡РµСЂРµРґРё, РЅР°С‡РёРЅР°СЏ СЃРѕ СЃРІРѕРµР№
+        res = m_thread_queues[i % m_thread_count].fast_pop(twp);
+        if (res) break;
+    }
+
+    if (!res)
+    {
+        return;
+    }
+    else if (!twp.task)
+    {
+        // С‡С‚РѕР±С‹ РЅРµ РґРѕРїСѓСЃС‚РёС‚СЊ Р·Р°РІРёСЃР°РЅРёСЏ РїРѕС‚РѕРєР°
+        // РєР»Р°РґРµРј РѕР±СЂР°С‚РЅРѕ Р·Р°РґР°С‡Сѓ-РїСѓСЃС‚С‹С€РєСѓ
+        m_thread_queues[i % m_thread_count].push(twp);
+    }
+    if (!twp.task)
+    {
+        return;
+    }
+    // РІС‹РїРѕР»РЅСЏРµРј Р·Р°РґР°С‡Сѓ
+    twp.task();
+    twp.prom.set_value();
+}
 
 void ThreadPool::stop()
 {
     for (int i = 0; i < m_thread_count; i++)
     {
-        // кладем задачу-пустышку в каждую очередь
-        // для завершения потока
+        // РєР»Р°РґРµРј Р·Р°РґР°С‡Сѓ-РїСѓСЃС‚С‹С€РєСѓ РІ РєР°Р¶РґСѓСЋ РѕС‡РµСЂРµРґСЊ
+        // РґР»СЏ Р·Р°РІРµСЂС€РµРЅРёСЏ РїРѕС‚РѕРєР°
         TaskWithPromise twp;
         m_thread_queues[i].push(twp);
     }
@@ -98,13 +95,13 @@ void ThreadPool::stop()
 }
 auto ThreadPool::push_task(FuncType f, std::vector<int>& vec, int id, int arg) -> res_type
 {
-    // вычисляем индекс очереди, куда положим задачу
+    // РІС‹С‡РёСЃР»СЏРµРј РёРЅРґРµРєСЃ РѕС‡РµСЂРµРґРё, РєСѓРґР° РїРѕР»РѕР¶РёРј Р·Р°РґР°С‡Сѓ
     int queue_to_push = m_index++ % m_thread_count;
-    // формируем функтор
+    // С„РѕСЂРјРёСЂСѓРµРј С„СѓРЅРєС‚РѕСЂ
     task_type task = [=,&vec] { f(vec,id, arg); };
     TaskWithPromise twp;
     twp.task = task;
-    // кладем в очередь
+    // РєР»Р°РґРµРј РІ РѕС‡РµСЂРµРґСЊ
     res_type res = twp.prom.get_future();
     m_thread_queues[queue_to_push].push(twp);
     return res;

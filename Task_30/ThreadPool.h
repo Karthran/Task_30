@@ -20,22 +20,23 @@ class ThreadPool
 {
 public:
     ThreadPool();
-    // запуск:
+    // Р·Р°РїСѓСЃРє:
     void start();
-    // остановка:
+    // РѕСЃС‚Р°РЅРѕРІРєР°:
     void stop();
-    // проброс задач
+    // РїСЂРѕР±СЂРѕСЃ Р·Р°РґР°С‡
     auto push_task(FuncType f, std::vector<int>& vec, int id, int arg) -> res_type;
-    // функция входа для потока
+    // С„СѓРЅРєС†РёСЏ РІС…РѕРґР° РґР»СЏ РїРѕС‚РѕРєР°
     void threadFunc(int qindex);
+    auto runTask() -> void;
 
 private:
-    // количество потоков
+    // РєРѕР»РёС‡РµСЃС‚РІРѕ РїРѕС‚РѕРєРѕРІ
     int m_thread_count;
-    // потоки
+    // РїРѕС‚РѕРєРё
     std::vector<std::thread> m_threads;
-    // очереди задач для потоков
+    // РѕС‡РµСЂРµРґРё Р·Р°РґР°С‡ РґР»СЏ РїРѕС‚РѕРєРѕРІ
     std::vector<BlockedQueue<TaskWithPromise>> m_thread_queues;
-    // для равномерного распределения задач
+    // РґР»СЏ СЂР°РІРЅРѕРјРµСЂРЅРѕРіРѕ СЂР°СЃРїСЂРµРґРµР»РµРЅРёСЏ Р·Р°РґР°С‡
     int m_index{0};
 };

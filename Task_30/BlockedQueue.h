@@ -10,31 +10,31 @@ public:
     void push(T& item)
     {
         std::lock_guard<std::mutex> l(m_locker);
-        // обычный потокобезопасный push
+        // РѕР±С‹С‡РЅС‹Р№ РїРѕС‚РѕРєРѕР±РµР·РѕРїР°СЃРЅС‹Р№ push
         m_task_queue.push(std::move(item));
-        // делаем оповещение, чтобы поток, вызвавший
-        // pop проснулся и забрал элемент из очереди
+        // РґРµР»Р°РµРј РѕРїРѕРІРµС‰РµРЅРёРµ, С‡С‚РѕР±С‹ РїРѕС‚РѕРє, РІС‹Р·РІР°РІС€РёР№
+        // pop РїСЂРѕСЃРЅСѓР»СЃСЏ Рё Р·Р°Р±СЂР°Р» СЌР»РµРјРµРЅС‚ РёР· РѕС‡РµСЂРµРґРё
         m_notifier.notify_one();
     }
-    // блокирующий метод получения элемента из очереди
+    // Р±Р»РѕРєРёСЂСѓСЋС‰РёР№ РјРµС‚РѕРґ РїРѕР»СѓС‡РµРЅРёСЏ СЌР»РµРјРµРЅС‚Р° РёР· РѕС‡РµСЂРµРґРё
     void pop(T& item)
     {
         std::unique_lock<std::mutex> l(m_locker);
         if (m_task_queue.empty())
-            // ждем, пока вызовут push
+            // Р¶РґРµРј, РїРѕРєР° РІС‹Р·РѕРІСѓС‚ push
             m_notifier.wait(l, [this] { return !m_task_queue.empty(); });
         item = std::move(m_task_queue.front());
         m_task_queue.pop();
     }
-    // неблокирующий метод получения элемента из очереди
-    // возвращает false, если очередь пуста
+    // РЅРµР±Р»РѕРєРёСЂСѓСЋС‰РёР№ РјРµС‚РѕРґ РїРѕР»СѓС‡РµРЅРёСЏ СЌР»РµРјРµРЅС‚Р° РёР· РѕС‡РµСЂРµРґРё
+    // РІРѕР·РІСЂР°С‰Р°РµС‚ false, РµСЃР»Рё РѕС‡РµСЂРµРґСЊ РїСѓСЃС‚Р°
     bool fast_pop(T& item)
     {
         std::lock_guard<std::mutex> l(m_locker);
         if (m_task_queue.empty())
-            // просто выходим
+            // РїСЂРѕСЃС‚Рѕ РІС‹С…РѕРґРёРј
             return false;
-        // забираем элемент
+        // Р·Р°Р±РёСЂР°РµРј СЌР»РµРјРµРЅС‚
         item = std::move(m_task_queue.front());
         m_task_queue.pop();
         return true;
@@ -42,8 +42,8 @@ public:
 
 private:
     std::mutex m_locker;
-    // очередь задач
+    // РѕС‡РµСЂРµРґСЊ Р·Р°РґР°С‡
     std::queue<T> m_task_queue;
-    // уведомитель
+    // СѓРІРµРґРѕРјРёС‚РµР»СЊ
     std::condition_variable m_notifier;
 };

@@ -14,3 +14,7 @@ auto RequestHandler::pushRequest(FuncType f, std::vector<int>& vec, int id, int 
 {
     return m_tpool.push_task(f, vec, id, arg);
 }
+
+auto RequestHandler::runTask() -> void {
+    m_tpool.runTask();
+    }
