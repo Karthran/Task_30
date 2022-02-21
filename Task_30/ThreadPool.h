@@ -21,13 +21,13 @@ class ThreadPool
 public:
     ThreadPool();
     // запуск:
-    void start();
+    auto start() -> void;
     // остановка:
-    void stop();
+    auto stop() -> void;
     // проброс задач
     auto push_task(FuncType f, std::vector<int>& vec, int id, int arg) -> res_type;
     // функция входа для потока
-    void threadFunc(int qindex);
+    auto threadFunc(int qindex) -> void;
     auto runTask() -> void;
 
 private:

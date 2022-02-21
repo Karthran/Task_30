@@ -4,7 +4,7 @@ ThreadPool::ThreadPool() : m_thread_count(std::thread::hardware_concurrency() !=
 {
 }
 
-void ThreadPool::start()
+auto ThreadPool::start() -> void
 {
     for (int i = 0; i < m_thread_count; i++)
     {
@@ -12,7 +12,7 @@ void ThreadPool::start()
     }
 }
 
-void ThreadPool::threadFunc(int qindex)
+auto ThreadPool::threadFunc(int qindex) -> void
 {
     while (true)
     {
@@ -79,7 +79,7 @@ auto ThreadPool::runTask() -> void
     twp.prom.set_value();
 }
 
-void ThreadPool::stop()
+auto ThreadPool::stop() -> void
 {
     for (int i = 0; i < m_thread_count; i++)
     {

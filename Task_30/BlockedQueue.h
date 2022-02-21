@@ -7,7 +7,7 @@ template <class T>
 class BlockedQueue
 {
 public:
-    void push(T& item)
+    auto push(T& item) - > void
     {
         std::lock_guard<std::mutex> l(m_locker);
         // обычный потокобезопасный push
@@ -17,7 +17,7 @@ public:
         m_notifier.notify_one();
     }
     // блокирующий метод получения элемента из очереди
-    void pop(T& item)
+    auto pop(T& item) -> void
     {
         std::unique_lock<std::mutex> l(m_locker);
         if (m_task_queue.empty())
@@ -28,7 +28,7 @@ public:
     }
     // неблокирующий метод получения элемента из очереди
     // возвращает false, если очередь пуста
-    bool fast_pop(T& item)
+    auto fast_pop(T& item) -> bool
     {
         std::lock_guard<std::mutex> l(m_locker);
         if (m_task_queue.empty())
