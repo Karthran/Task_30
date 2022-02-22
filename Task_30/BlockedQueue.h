@@ -7,7 +7,7 @@ template <class T>
 class BlockedQueue
 {
 public:
-    auto push(T& item) - > void
+    auto push(T& item) -> void
     {
         std::lock_guard<std::mutex> l(m_locker);
         // обычный потокобезопасный push
