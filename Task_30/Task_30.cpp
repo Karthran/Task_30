@@ -63,8 +63,8 @@ auto quickSort(std::vector<T>& arr, int start, int stop) -> void
         // auto f = std::async(std::launch::async, [&]() { quickSort(arr, start, right_bound); });
         auto fut = rh.pushRequest(quickSort, arr, start, right_bound);
         quickSort(arr, left_bound, stop);
-        while (fut.wait_for(std::chrono::seconds(0)) == std::future_status::timeout)
-        {
+        while (fut.wait_for(std::chrono::seconds(0)) == std::future_status::timeout) // Пока ждем результата 
+        {                                                                            // пытаемся взять задачу из пула
             rh.runTask();
         }
     }
